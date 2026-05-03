@@ -5,17 +5,20 @@ import com.example.grading.dto.NoteDTO;
 import com.example.grading.entity.Note;
 import com.example.grading.exception.ResourceNotFoundException;
 import com.example.grading.repository.NoteRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
 public class NoteService {
 
     private final NoteRepository repository;
     private final EtudiantServiceClient etudiantServiceClient;
+
+    public NoteService(NoteRepository repository, EtudiantServiceClient etudiantServiceClient) {
+        this.repository = repository;
+        this.etudiantServiceClient = etudiantServiceClient;
+    }
 
     public List<NoteDTO> findAll() {
         return repository.findAll().stream().map(this::toDto).toList();
@@ -63,20 +66,20 @@ public class NoteService {
     }
 
     private NoteDTO toDto(Note entity) {
-        return NoteDTO.builder()
-                .id(entity.getId())
-                .studentId(entity.getStudentId())
-                .matiere(entity.getMatiere())
-                .valeur(entity.getValeur())
-                .build();
+        return new NoteDTO(
+            entity.getId(),
+            entity.getStudentId(),
+            entity.getMatiere(),
+            entity.getValeur()
+        );
     }
 
     private Note toEntity(NoteDTO dto) {
-        return Note.builder()
-                .id(dto.getId())
-                .studentId(dto.getStudentId())
-                .matiere(dto.getMatiere())
-                .valeur(dto.getValeur())
-                .build();
+        return new Note(
+            dto.getId(),
+            dto.getStudentId(),
+            dto.getMatiere(),
+            dto.getValeur()
+        );
     }
 }

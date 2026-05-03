@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -19,6 +20,7 @@ public class EtudiantService {
     private final EtudiantRepository repository;
     private final EtudiantMapper mapper;
 
+    // ✅ Cache Redis activé pour tous les étudiants
     @Cacheable(value = "etudiants")
     public List<EtudiantDTO> findAll() {
         return repository.findAll().stream()
@@ -26,6 +28,7 @@ public class EtudiantService {
                 .collect(Collectors.toList());
     }
 
+    // ✅ Cache Redis activé pour un étudiant par ID
     @Cacheable(value = "etudiants", key = "#id")
     public EtudiantDTO findById(Long id) {
         return repository.findById(id)
@@ -33,12 +36,14 @@ public class EtudiantService {
                 .orElseThrow(() -> new ResourceNotFoundException("Étudiant non trouvé avec l'id: " + id));
     }
 
+    // ✅ Invalidation du cache après ajout
     @CacheEvict(value = "etudiants", allEntries = true)
     public EtudiantDTO save(EtudiantDTO dto) {
         Etudiant entity = mapper.toEntity(dto);
         return mapper.toDTO(repository.save(entity));
     }
 
+    // ✅ Invalidation du cache après mise à jour
     @CacheEvict(value = "etudiants", allEntries = true)
     public EtudiantDTO update(Long id, EtudiantDTO dto) {
         if (!repository.existsById(id)) {
@@ -49,6 +54,7 @@ public class EtudiantService {
         return mapper.toDTO(repository.save(entity));
     }
 
+    // ✅ Invalidation du cache après suppression
     @CacheEvict(value = "etudiants", allEntries = true)
     public void delete(Long id) {
         if (!repository.existsById(id)) {
@@ -57,12 +63,14 @@ public class EtudiantService {
         repository.deleteById(id);
     }
 
+    // ✅ Recherche par année
     public List<EtudiantDTO> findByAnnee(int annee) {
         return repository.findByAnneePremiereInscription(annee).stream()
                 .map(mapper::toDTO)
                 .collect(Collectors.toList());
     }
 
+    // ✅ Recherche par département
     public List<EtudiantDTO> findByDepartement(Long departementId) {
         return repository.findByDepartementId(departementId).stream()
                 .map(mapper::toDTO)

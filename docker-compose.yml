@@ -1,5 +1,5 @@
 services:
-  postgres:
+  postgres-etudiants:
     image: postgres:15
     environment:
       POSTGRES_USER: postgres
@@ -7,11 +7,13 @@ services:
       POSTGRES_DB: etudiantsdb
     ports:
       - "5433:5432"
+    restart: always
 
   redis:
     image: redis:alpine
     ports:
       - "6380:6379"
+    restart: always
 
   eureka-server:
     build:
@@ -19,17 +21,18 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8761:8761"
+    restart: always
 
   etudiant-service:
     build:
       context: ./api-spring-boot
       dockerfile: Dockerfile
     depends_on:
-      - postgres
+      - postgres-etudiants
       - redis
       - eureka-server
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/etudiantsdb
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-etudiants:5432/etudiantsdb
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
       SPRING_DATA_REDIS_HOST: redis
@@ -37,21 +40,23 @@ services:
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka
     ports:
       - "8081:8081"
+    restart: always
 
   grading-service:
     build:
       context: ./grading-service
       dockerfile: Dockerfile
     depends_on:
-      - postgres
+      - postgres-etudiants
       - eureka-server
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/etudiantsdb
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-etudiants:5432/etudiantsdb
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka
     ports:
-      - "8082:8082"
+      - "8085:8082"   # exposé sur 8085 côté hôte
+    restart: always
 
   api-gateway:
     build:
@@ -63,6 +68,7 @@ services:
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka
     ports:
       - "8090:8080"
+    restart: always
 
   frontend:
     build:
@@ -74,4 +80,23 @@ services:
       API_BASE_INTERNAL: http://api-gateway:8080
       NEXT_PUBLIC_API_BASE_URL: http://localhost:8090
     ports:
-      - "3001:3000"
+      - "3000:3000"
+    restart: always
+
+  mongodb:
+    image: mongo:7
+    ports:
+      - "27017:27017"
+    restart: always
+
+  auth-service:
+    build:
+      context: ./auth-service
+    ports:
+      - "3001:3001"
+    depends_on:
+      - mongodb
+    environment:
+      MONGO_URI: mongodb://mongodb:27017/authdb
+      JWT_SECRET: votre_secret_jwt_ici
+    restart: always
