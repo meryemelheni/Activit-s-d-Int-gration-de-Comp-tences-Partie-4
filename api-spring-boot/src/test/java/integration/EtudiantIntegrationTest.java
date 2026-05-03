@@ -1,5 +1,6 @@
 package integration;
 
+import com.example.etudiants.EtudiantApplication;
 import com.example.etudiants.entity.Etudiant;
 import com.example.etudiants.repository.EtudiantRepository;
 import org.junit.jupiter.api.Test;
@@ -13,7 +14,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(classes = EtudiantApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Testcontainers
 class EtudiantIntegrationTest {
 
