@@ -1,98 +1,68 @@
-# Projet Gestion des Étudiants — Partie 3
+# Projet Gestion des Étudiants — Partie 4
 
-## Architecture Microservices
-- eureka-server (port 8761)
-- api-spring-boot / etudiant-service (port 8081)
-- grading-service (port 8082)
-- api-gateway (port 8090)
-- frontend Next.js (port 3000)
-- mobile_app Flutter
+## Objectif Général
+Atteindre un niveau de qualité logicielle professionnel sur le micro-service étudiant en mettant en place une stratégie de test complète, en liant l'outillage de test à la traçabilité Jira via Xray, et en ajoutant un micro-service d'authentification.
 
-## Prérequis
-- Java 17+
-- Node.js 18+
-- Flutter SDK
-- Docker & Docker Compose
-- Maven
+## Architecture Microservices (Mis à jour Partie 4)
+- **auth-service** : Micro-service Node.js/Express pour l'authentification (port 3001)
+- **api-spring-boot** : Service de gestion des étudiants avec stratégie de test complète (port 8081)
+- **frontend** : Interface Next.js avec tests E2E Cypress (port 3000)
+- **mongodb** : Base de données pour le service d'authentification
+- **postgres-etudiants** : Base de données pour le service étudiant
+- **eureka-server** : Annuaire des services (port 8761)
+- **api-gateway** : Point d'entrée unique (port 8090)
+
+## Stratégie de Test (Couverture ≥ 80%)
+- **Tests Unitaires** : JUnit 5 + Mockito (Isolation complète de la couche Service).
+- **Tests d'Intégration** : Testcontainers + PostgreSQL (Validation de la couche DAO).
+- **Tests E2E** : Cypress (Scénarios utilisateurs complets sur le Frontend).
+- **Tests de Stress** : Gatling (Validation des performances sous charge).
+- **Mesure de Couverture** : JaCoCo (Échec du build si < 80%).
+
+## Intégration Jira & Xray
+- **GitHub ↔ Jira** : Liens automatiques via les clés de tickets (ex: `PROJ-4`).
+- **Xray** : Publication automatique des résultats de tests JUnit vers Jira via l'API REST dans le pipeline CI/CD.
 
 ## Lancer le projet
-
-### Option 1 - Manuel (dans l'ordre)
-Terminal 1 - Eureka :
-cd eureka-server && ./mvnw spring-boot:run
-
-Terminal 2 - Etudiant Service :
-cd api-spring-boot && ./mvnw spring-boot:run
-
-Terminal 3 - Grading Service :
-cd grading-service && ./mvnw spring-boot:run
-
-Terminal 4 - API Gateway :
-cd api-gateway && ./mvnw spring-boot:run
-
-Terminal 5 - Frontend :
-cd frontend && npm install && npm run dev
-
-Terminal 6 - Mobile :
-cd mobile_app && flutter pub get && flutter run
-
-### Option 2 - Docker Compose
+```bash
 docker compose up --build
+```
 
 ## URLs importantes
 | Service | URL |
 |---------|-----|
 | Eureka Dashboard | http://localhost:8761 |
 | Etudiant Swagger | http://localhost:8081/swagger-ui/index.html |
-| Grading Swagger | http://localhost:8082/swagger-ui/index.html |
 | API Gateway | http://localhost:8090 |
-| Frontend | http://localhost:3001 |
+| Frontend | http://localhost:3000 |
+| Auth Service | http://localhost:3001 |
 
-## Endpoints API
-
-### Etudiants
-GET    /api/etudiants
-GET    /api/etudiants/{id}
-POST   /api/etudiants
-PUT    /api/etudiants/{id}
-DELETE /api/etudiants/{id}
-
-### Départements
-GET    /api/departements
-GET    /api/departements/{id}
-POST   /api/departements
-PUT    /api/departements/{id}
-DELETE /api/departements/{id}
-
-### Notes
-GET    /api/notes
-GET    /api/notes/{id}
-POST   /api/notes
-PUT    /api/notes/{id}
-DELETE /api/notes/{id}
-
-## Workflow GitHub
-- Toute PR doit être reliée à un ticket Jira
-- Au moins 1 review approuvée avant merge
-- Push direct sur main et version-3 interdit
-- Les commentaires bloquants doivent être 
-  résolus avant merge
-- Toute PR doit être relue dans les 48h
-
-## Structure du dépôt
-etudiantsapi/
-├── api-gateway/
+## Structure du dépôt attendue (Partie 4)
+```text
+/projet-etudiants/
 ├── api-spring-boot/
-├── eureka-server/
-├── grading-service/
+│   ├── src/
+│   │   ├── main/
+│   │   └── test/
+│   │       ├── java/
+│   │       │   ├── unit/        # Tests unitaires JUnit + Mockito
+│   │       │   └── integration/ # Tests d'intégration Testcontainers
+│   │       └── resources/
+│   │           └── features/    # Fichiers Gherkin (Partie 2)
+│   └── pom.xml                  # Avec JaCoCo + Testcontainers + Gatling
+├── auth-service/                # Micro service Node.js (nouveau)
+│   ├── src/
+│   │   ├── models/User.js
+│   │   ├── routes/auth.js
+│   │   └── app.js
+│   └── package.json
 ├── frontend/
-├── mobile_app/
-├── k8s/
-│   ├── etudiant-deployment.yaml
-│   └── postgres-deployment.yaml
+│   └── cypress/
+│       └── e2e/                 # Tests E2E Cypress (nouveau)
 ├── .github/
+│   ├── workflows/
+│   │   └── test-and-report.yml  # Pipeline CI avec publication Xray
 │   ├── ISSUE_TEMPLATE/
-│   │   └── bug_report.md
 │   └── pull_request_template.md
-├── docker-compose.yml
-└── README.md
+└── docker-compose.yml           # Mis à jour avec mongodb + auth-service
+```
