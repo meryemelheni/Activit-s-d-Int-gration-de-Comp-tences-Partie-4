@@ -15,14 +15,6 @@ services:
       - "6380:6379"
     restart: always
 
-  eureka-server:
-    build:
-      context: ./eureka-server
-      dockerfile: Dockerfile
-    ports:
-      - "8761:8761"
-    restart: always
-
   etudiant-service:
     build:
       context: ./api-spring-boot
@@ -30,55 +22,22 @@ services:
     depends_on:
       - postgres-etudiants
       - redis
-      - eureka-server
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-etudiants:5432/etudiantsdb
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka
     ports:
       - "8081:8081"
-    restart: always
-
-  grading-service:
-    build:
-      context: ./grading-service
-      dockerfile: Dockerfile
-    depends_on:
-      - postgres-etudiants
-      - eureka-server
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-etudiants:5432/etudiantsdb
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: postgres
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka
-    ports:
-      - "8085:8082"   # exposé sur 8085 côté hôte
-    restart: always
-
-  api-gateway:
-    build:
-      context: ./api-gateway
-      dockerfile: Dockerfile
-    depends_on:
-      - eureka-server
-    environment:
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka
-    ports:
-      - "8090:8080"
     restart: always
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    depends_on:
-      - api-gateway
     environment:
-      API_BASE_INTERNAL: http://api-gateway:8080
-      NEXT_PUBLIC_API_BASE_URL: http://localhost:8090
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:8081
     ports:
       - "3000:3000"
     restart: always
